@@ -1,0 +1,594 @@
+import type { Metadata } from "next";
+import { Oswald, Roboto } from "next/font/google";
+import "./globals.css";
+
+const oswald = Oswald({
+  variable: "--font-oswald",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+});
+
+const roboto = Roboto({
+  variable: "--font-roboto",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "700"],
+});
+
+export const metadata: Metadata = {
+  title: "Diego Barber Shop | Prémium Borbélyüzlet",
+  description: "Diego Barber Shop – Prémium borbélyüzlet. Hajvágás férfiaknak és nőknek, szakáll igazítás, és egyéb borbélyüzleti szolgáltatások.",
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="hu">
+      <body className={`${oswald.variable} ${roboto.variable} antialiased`}>
+        {children}
+      </body>
+    </html>
+  );
+}
+src/app/globals.css
+@import "tailwindcss";
+
+@theme {
+  --font-oswald: var(--font-oswald);
+  --font-roboto: var(--font-roboto);
+  --color-red: #c0392b;
+  --color-red-light: #e74c3c;
+  --color-red-dark: #922b21;
+  --color-dark: #0a0a0a;
+  --color-dark-2: #141414;
+  --color-dark-3: #1e1e1e;
+  --color-gray: #2a2a2a;
+  --color-light: #f0ece8;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-roboto), sans-serif;
+  background-color: #0a0a0a;
+  color: #f0ece8;
+}
+
+.font-oswald { font-family: var(--font-oswald), sans-serif; }
+.font-roboto { font-family: var(--font-roboto), sans-serif; }
+
+.text-red-gradient {
+  background: linear-gradient(135deg, #c0392b, #e74c3c, #c0392b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-link { position: relative; }
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #c0392b;
+  transition: width 0.3s ease;
+}
+.nav-link:hover::after { width: 100%; }
+
+.red-divider {
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #c0392b, transparent);
+  margin: 0 auto;
+}
+
+.service-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.service-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(192, 57, 43, 0.2);
+}
+
+.gallery-item { overflow: hidden; }
+.gallery-item .gallery-placeholder { transition: transform 0.5s ease; }
+.gallery-item:hover .gallery-placeholder { transform: scale(1.08); }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up { animation: fadeInUp 0.8s ease forwards; }
+
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(192, 57, 43, 0); }
+}
+.pulse-red { animation: pulse-red 2s infinite; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #c0392b; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #e74c3c; }
+src/app/page.tsx
+import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/HeroSection";
+import ServicesSection from "@/components/ServicesSection";
+import GallerySection from "@/components/GallerySection";
+import BookingSection from "@/components/BookingSection";
+import ContactSection from "@/components/ContactSection";
+import Footer from "@/components/Footer";
+
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-[#0a0a0a]">
+      <Navbar />
+      <HeroSection />
+      <ServicesSection />
+      <GallerySection />
+      <BookingSection />
+      <ContactSection />
+      <Footer />
+    </main>
+  );
+}
+src/components/Navbar.tsx
+"use client";
+import { useState, useEffect } from "react";
+
+const navLinks = [
+  { label: "Főoldal", href: "#hero" },
+  { label: "Szolgáltatások", href: "#services" },
+  { label: "Galéria", href: "#gallery" },
+  { label: "Foglalás", href: "#booking" },
+  { label: "Kapcsolat", href: "#contact" },
+];
+
+function CrossLogo({ size = 32 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Diego Barber Shop logo">
+      <circle cx="16" cy="16" r="15" stroke="#c0392b" strokeWidth="1.5" fill="none" />
+      <rect x="4" y="13.5" width="24" height="5" rx="1" fill="#c0392b" />
+      <rect x="13.5" y="4" width="5" height="24" rx="1" fill="#c0392b" />
+    </svg>
+  );
+}
+
+export default function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? "bg-[#0a0a0a]/96 backdrop-blur-md shadow-lg shadow-black/50 py-3" : "bg-transparent py-5"}`}>
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        <a href="#hero" className="flex items-center gap-3 group">
+          <CrossLogo size={36} />
+          <div className="flex flex-col leading-none">
+            <span className="font-oswald text-xl font-bold tracking-widest text-[#f0ece8] uppercase group-hover:text-[#c0392b] transition-colors duration-300">Diego</span>
+            <span className="font-roboto text-[10px] tracking-[0.35em] text-[#c0392b] uppercase">Barber Shop</span>
+          </div>
+        </a>
+        <ul className="hidden md:flex items-center gap-8">
+          {navLinks.map((link) => (
+            <li key={link.href}>
+              <a href={link.href} className="nav-link font-oswald text-sm tracking-widest text-[#f0ece8]/75 hover:text-[#c0392b] transition-colors duration-300 uppercase">{link.label}</a>
+            </li>
+          ))}
+        </ul>
+        <a href="#booking" className="hidden md:inline-flex items-center gap-2 px-6 py-2.5 bg-[#c0392b] text-[#f0ece8] font-oswald text-sm tracking-widest uppercase hover:bg-[#e74c3c] transition-all duration-300 shadow-lg shadow-[#c0392b]/30">Időpontfoglalás</a>
+        <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden flex flex-col gap-1.5 p-2" aria-label="Menü">
+          <span className={`block w-6 h-0.5 bg-[#c0392b] transition-all duration-300 ${menuOpen ? "rotate-45 translate-y-2" : ""}`} />
+          <span className={`block w-6 h-0.5 bg-[#c0392b] transition-all duration-300 ${menuOpen ? "opacity-0" : ""}`} />
+          <span className={`block w-6 h-0.5 bg-[#c0392b] transition-all duration-300 ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+        </button>
+      </div>
+      <div className={`md:hidden transition-all duration-500 overflow-hidden ${menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
+        <div className="bg-[#0a0a0a]/98 backdrop-blur-md px-6 py-4 flex flex-col gap-4 border-t border-[#c0392b]/20">
+          {navLinks.map((link) => (
+            <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)} className="font-oswald text-sm tracking-widest text-[#f0ece8]/75 hover:text-[#c0392b] transition-colors py-1 uppercase">{link.label}</a>
+          ))}
+          <a href="#booking" onClick={() => setMenuOpen(false)} className="mt-2 inline-flex items-center justify-center px-6 py-2.5 bg-[#c0392b] text-[#f0ece8] font-oswald text-sm tracking-widest uppercase hover:bg-[#e74c3c] transition-all duration-300">Időpontfoglalás</a>
+        </div>
+      </div>
+    </nav>
+  );
+}
+src/components/HeroSection.tsx
+export default function HeroSection() {
+  return (
+    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#050505] via-[#0a0a0a] to-[#1a0505]" />
+      <div className="absolute top-1/3 right-1/4 w-80 h-80 rounded-full bg-[#c0392b]/8 blur-3xl" />
+      <div className="absolute bottom-1/4 left-1/5 w-64 h-64 rounded-full bg-[#c0392b]/5 blur-2xl" />
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "repeating-linear-gradient(45deg, #c0392b 0px, #c0392b 1px, transparent 1px, transparent 40px)" }} />
+      <div className="absolute left-8 top-1/2 -translate-y-1/2 hidden lg:flex flex-col items-center gap-3">
+        <div className="w-px h-20 bg-gradient-to-b from-transparent to-[#c0392b]/60" />
+        <div className="w-2 h-2 bg-[#c0392b] rotate-45" />
+        <div className="w-px h-20 bg-gradient-to-t from-transparent to-[#c0392b]/60" />
+      </div>
+      <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden lg:flex flex-col items-center gap-3">
+        <div className="w-px h-20 bg-gradient-to-b from-transparent to-[#c0392b]/60" />
+        <div className="w-2 h-2 bg-[#c0392b] rotate-45" />
+        <div className="w-px h-20 bg-gradient-to-t from-transparent to-[#c0392b]/60" />
+      </div>
+      <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
+        <div className="flex justify-center mb-8">
+          <div className="relative w-24 h-24">
+            <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+              <circle cx="48" cy="48" r="46" stroke="#c0392b" strokeWidth="2" fill="none" opacity="0.4" />
+              <circle cx="48" cy="48" r="38" stroke="#c0392b" strokeWidth="1" fill="none" opacity="0.2" />
+              <rect x="10" y="40" width="76" height="16" rx="2" fill="#c0392b" />
+              <rect x="40" y="10" width="16" height="76" rx="2" fill="#c0392b" />
+            </svg>
+          </div>
+        </div>
+        <div className="flex items-center justify-center gap-4 mb-6">
+          <div className="h-px w-10 bg-[#c0392b]/60" />
+          <span className="font-roboto text-xs tracking-[0.4em] text-[#c0392b] uppercase">Prémium Borbélyüzlet</span>
+          <div className="h-px w-10 bg-[#c0392b]/60" />
+        </div>
+        <h1 className="font-oswald text-6xl md:text-8xl lg:text-9xl font-bold leading-none mb-4 uppercase tracking-wider">
+          <span className="block text-[#f0ece8]">Diego</span>
+          <span className="block text-red-gradient">Barber Shop</span>
+        </h1>
+        <p className="font-roboto text-lg md:text-xl text-[#f0ece8]/55 max-w-2xl mx-auto mb-12 leading-relaxed mt-6">
+          Ahol a stílus találkozik a precizitással. Prémium hajvágás, szakáll igazítás és borbélyüzleti élmény Budapesten.
+        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="#booking" className="px-10 py-4 bg-[#c0392b] text-[#f0ece8] font-oswald font-bold text-sm tracking-widest uppercase hover:bg-[#e74c3c] transition-all duration-300 shadow-lg shadow-[#c0392b]/30 pulse-red">Időpontfoglalás</a>
+          <a href="#services" className="px-10 py-4 border-2 border-[#f0ece8]/25 text-[#f0ece8]/75 font-oswald text-sm tracking-widest uppercase hover:border-[#c0392b] hover:text-[#c0392b] transition-all duration-300">Árlista</a>
+        </div>
+        <div className="mt-20 grid grid-cols-3 gap-8 max-w-md mx-auto">
+          {[{ value: "10+", label: "Év tapasztalat" }, { value: "500+", label: "Elégedett vendég" }, { value: "100%", label: "Elégedettség" }].map((stat) => (
+            <div key={stat.label} className="text-center">
+              <div className="font-oswald text-3xl font-bold text-[#c0392b]">{stat.value}</div>
+              <div className="font-roboto text-xs tracking-wider text-[#f0ece8]/45 mt-1 uppercase">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+        <span className="font-roboto text-xs tracking-widest text-[#c0392b]/60 uppercase">Görgessen</span>
+        <div className="w-px h-8 bg-gradient-to-b from-[#c0392b]/60 to-transparent" />
+      </div>
+    </section>
+  );
+}
+src/components/ServicesSection.tsx
+const services = [
+  { icon: "✂️", title: "Hajvágás – Férfiaknak", description: "Precíz férfi hajvágás klasszikus és modern stílusokban.", items: ["Klasszikus hajvágás", "Fade & taper vágás", "Mosás + szárítás", "Stílus tanácsadás"], price: "6 000 Ft", highlight: false, badge: null },
+  { icon: "💇", title: "Hajvágás – Nőknek", description: "Professzionális női hajvágás, formázás és stílusformálás.", items: ["Hajvágás & formázás", "Mosás + szárítás", "Hajvégek igazítása", "Stílus tanácsadás"], price: "7 500 Ft", highlight: true, badge: "Népszerű" },
+  { icon: "🪒", title: "Szakáll igazítás", description: "Hagyományos borotválkozás és szakáll formázás.", items: ["Szakáll trimmelés", "Hagyományos borotválkozás", "Meleg törülköző kezelés", "Szakáll olaj ápolás"], price: "3 500 Ft", highlight: false, badge: null },
+  { icon: "✂️🪒", title: "Hajvágás + Szakáll", description: "Teljes férfi grooming csomag.", items: ["Teljes hajvágás", "Szakáll formázás", "Mosás + szárítás", "Meleg törülköző"], price: "8 500 Ft", highlight: false, badge: "Csomag" },
+  { icon: "👦", title: "Gyermek hajvágás", description: "Türelmes és gondos hajvágás gyermekeknek.", items: ["Fiú hajvágás", "Mosás + szárítás", "Játékos légkör", "Szülők jelenlétével"], price: "4 000 Ft", highlight: false, badge: null },
+  { icon: "💆", title: "Fejbőr masszázs", description: "Relaxáló fejbőr masszázs prémium termékekkel.", items: ["15 perces masszázs", "Prémium hajolaj", "Fejbőr kezelés", "Relaxáló légkör"], price: "2 500 Ft", highlight: false, badge: null },
+];
+
+export default function ServicesSection() {
+  return (
+    <section id="services" className="py-24 bg-[#0a0a0a]">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="h-px w-8 bg-[#c0392b]" />
+            <span className="font-roboto text-xs tracking-[0.3em] text-[#c0392b] uppercase">Árlista</span>
+            <div className="h-px w-8 bg-[#c0392b]" />
+          </div>
+          <h2 className="font-oswald text-4xl md:text-5xl font-bold text-[#f0ece8] mb-4 uppercase tracking-wider">Szolgáltatásaink</h2>
+          <div className="red-divider mb-6" />
+          <p className="font-roboto text-[#f0ece8]/50 max-w-xl mx-auto">Prémium borbélyüzleti szolgáltatások minden igényre.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {services.map((service) => (
+            <div key={service.title} className={`service-card relative p-8 group border transition-colors duration-300 ${service.highlight ? "bg-[#1a0505] border-[#c0392b]/60 hover:border-[#c0392b]" : "bg-[#141414] border-[#1e1e1e] hover:border-[#c0392b]/40"}`}>
+              {service.badge && <div className="absolute top-4 right-4 bg-[#c0392b] text-[#f0ece8] font-oswald text-xs tracking-widest uppercase px-3 py-1">{service.badge}</div>}
+              <div className="text-4xl mb-4">{service.icon}</div>
+              <h3 className={`font-oswald text-xl font-bold mb-3 uppercase tracking-wide transition-colors duration-300 ${service.highlight ? "text-[#c0392b]" : "text-[#f0ece8] group-hover:text-[#c0392b]"}`}>{service.title}</h3>
+              <p className="font-roboto text-sm text-[#f0ece8]/50 leading-relaxed mb-5">{service.description}</p>
+              <ul className="space-y-2 mb-6">
+                {service.items.map((item) => (
+                  <li key={item} className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-[#c0392b] rotate-45 flex-shrink-0" />
+                    <span className="font-roboto text-xs text-[#f0ece8]/60">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="pt-4 border-t border-[#2a2a2a] flex items-center justify-between">
+                <span className={`font-oswald text-2xl font-bold ${service.highlight ? "text-[#e74c3c]" : "text-[#c0392b]"}`}>{service.price}</span>
+                <a href="#booking" className="font-roboto text-xs tracking-widest text-[#f0ece8]/40 hover:text-[#c0392b] uppercase transition-colors duration-300">Foglalás →</a>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-center font-roboto text-xs text-[#f0ece8]/30 mt-10">* Az árak tájékoztató jellegűek.</p>
+      </div>
+    </section>
+  );
+}
+src/components/GallerySection.tsx
+const galleryItems = [
+  { label: "Fade vágás", size: "large", gradient: "from-[#2a0a0a] via-[#1a0505] to-[#0a0a0a]" },
+  { label: "Klasszikus vágás", size: "small", gradient: "from-[#1a1005] via-[#141414] to-[#0a0a0a]" },
+  { label: "Szakáll igazítás", size: "small", gradient: "from-[#051a1a] via-[#0a1414] to-[#0a0a0a]" },
+  { label: "Taper fade", size: "medium", gradient: "from-[#1a0a1a] via-[#141014] to-[#0a0a0a]" },
+  { label: "Undercut", size: "medium", gradient: "from-[#0a1a05] via-[#0a1405] to-[#0a0a0a]" },
+  { label: "Borotválkozás", size: "small", gradient: "from-[#1a0505] via-[#140505] to-[#0a0a0a]" },
+  { label: "Pompadour", size: "small", gradient: "from-[#05051a] via-[#050514] to-[#0a0a0a]" },
+  { label: "Crew cut", size: "large", gradient: "from-[#1a1005] via-[#141005] to-[#0a0a0a]" },
+];
+
+export default function GallerySection() {
+  return (
+    <section id="gallery" className="py-24 bg-[#141414]">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="h-px w-8 bg-[#c0392b]" />
+            <span className="font-roboto text-xs tracking-[0.3em] text-[#c0392b] uppercase">Munkáink</span>
+            <div className="h-px w-8 bg-[#c0392b]" />
+          </div>
+          <h2 className="font-oswald text-4xl md:text-5xl font-bold text-[#f0ece8] mb-4 uppercase tracking-wider">Galéria</h2>
+          <div className="red-divider mb-6" />
+          <p className="font-roboto text-[#f0ece8]/50 max-w-xl mx-auto">Tekintse meg legszebb munkáinkat. Minden vágás egy műalkotás.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {galleryItems.map((item, index) => (
+            <div key={index} className="gallery-item relative overflow-hidden cursor-pointer group">
+              <div className={`gallery-placeholder w-full bg-gradient-to-br ${item.gradient} relative ${item.size === "large" ? "h-72 md:h-80" : item.size === "medium" ? "h-52 md:h-60" : "h-40 md:h-48"}`}>
+                <div className="absolute inset-0 opacity-15">
+                  <div className="absolute top-3 right-3 w-6 h-6 border border-[#c0392b] rotate-45" />
+                  <div className="absolute bottom-6 left-3 w-3 h-3 border border-[#c0392b]" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <rect x="2" y="9" width="20" height="6" rx="1" fill="#c0392b" opacity="0.5" />
+                      <rect x="9" y="2" width="6" height="20" rx="1" fill="#c0392b" opacity="0.5" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="absolute inset-0 bg-[#c0392b]/0 group-hover:bg-[#c0392b]/15 transition-all duration-500" />
+                <div className="absolute bottom-0 left-0 right-0 p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-[#0a0a0a]/90 to-transparent">
+                  <span className="font-oswald text-xs tracking-widest text-[#f0ece8] uppercase">{item.label}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="text-center mt-12">
+          <p className="font-roboto text-sm text-[#f0ece8]/40 mb-4">Kövessen minket Instagramon a legfrissebb munkáinkért</p>
+          <a href="#" className="inline-flex items-center gap-2 font-oswald text-sm tracking-widest text-[#c0392b] uppercase hover:text-[#e74c3c] transition-colors duration-300">@diegobarbershop <span className="text-lg">→</span></a>
+        </div>
+      </div>
+    </section>
+  );
+}
+src/components/BookingSection.tsx
+"use client";
+import { useState } from "react";
+
+const serviceOptions = [
+  "Hajvágás – Férfiaknak (6 000 Ft)",
+  "Hajvágás – Nőknek (7 500 Ft)",
+  "Szakáll igazítás (3 500 Ft)",
+  "Hajvágás + Szakáll csomag (8 500 Ft)",
+  "Gyermek hajvágás (4 000 Ft)",
+  "Fejbőr masszázs (2 500 Ft)",
+];
+
+const timeSlots = ["09:00","09:30","10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30"];
+
+export default function BookingSection() {
+  const [formData, setFormData] = useState({ name: "", phone: "", email: "", service: "", date: "", time: "", message: "" });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); setSubmitted(true); };
+
+  return (
+    <section id="booking" className="py-24 bg-[#0a0a0a]">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          <div>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="h-px w-8 bg-[#c0392b]" />
+              <span className="font-roboto text-xs tracking-[0.3em] text-[#c0392b] uppercase">Online foglalás</span>
+            </div>
+            <h2 className="font-oswald text-4xl md:text-5xl font-bold text-[#f0ece8] mb-6 leading-tight uppercase tracking-wider">
+              Foglaljon<br /><span className="text-red-gradient">Időpontot</span>
+            </h2>
+            <div className="red-divider mb-8" style={{ marginLeft: 0 }} />
+            <p className="font-roboto text-[#f0ece8]/55 leading-relaxed mb-10">Töltse ki az alábbi űrlapot, és 24 órán belül visszaigazoljuk az időpontját.</p>
+            <div className="mb-10">
+              <h3 className="font-oswald text-lg font-bold text-[#f0ece8] mb-4 uppercase tracking-wider">Nyitvatartás</h3>
+              <div className="space-y-3">
+                {[{ day: "Hétfő – Péntek", hours: "09:00 – 19:00" }, { day: "Szombat", hours: "09:00 – 17:00" }, { day: "Vasárnap", hours: "Zárva" }].map((item) => (
+                  <div key={item.day} className="flex items-center justify-between py-2 border-b border-[#1e1e1e]">
+                    <span className="font-roboto text-sm text-[#f0ece8]/55">{item.day}</span>
+                    <span className={`font-oswald text-sm font-bold ${item.hours === "Zárva" ? "text-[#f0ece8]/25" : "text-[#c0392b]"}`}>{item.hours}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              {[{ icon: "📞", label: "+36 1 234 5678" }, { icon: "📧", label: "diego.barbershop@gmail.com" }, { icon: "📍", label: "Budapest, VII. kerület, Dohány utca 5." }].map((item) => (
+                <div key={item.label} className="flex items-center gap-3">
+                  <span className="text-xl">{item.icon}</span>
+                  <span className="font-roboto text-sm text-[#f0ece8]/55">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="bg-[#141414] border border-[#1e1e1e] p-8">
+            {submitted ? (
+              <div className="text-center py-12">
+                <div className="flex justify-center mb-6">
+                  <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="32" cy="32" r="30" stroke="#c0392b" strokeWidth="2" fill="none" />
+                    <rect x="8" y="27" width="48" height="10" rx="2" fill="#c0392b" />
+                    <rect x="27" y="8" width="10" height="48" rx="2" fill="#c0392b" />
+                  </svg>
+                </div>
+                <h3 className="font-oswald text-2xl font-bold text-[#f0ece8] mb-4 uppercase tracking-wider">Köszönjük a foglalást!</h3>
+                <p className="font-roboto text-sm text-[#f0ece8]/55 mb-8">Hamarosan visszaigazoljuk az időpontját e-mailben vagy telefonon.</p>
+                <button onClick={() => setSubmitted(false)} className="font-oswald text-sm tracking-widest text-[#c0392b] uppercase hover:text-[#e74c3c] transition-colors">Új foglalás →</button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-roboto text-xs tracking-wider text-[#f0ece8]/45 uppercase mb-2">Teljes név *</label>
+                    <input type="text" name="name" required value={formData.name} onChange={handleChange} className="w-full bg-[#0a0a0a] border border-[#2a2a2a] focus:border-[#c0392b] text-[#f0ece8] font-roboto text-sm px-4 py-3 outline-none transition-colors duration-300 placeholder:text-[#f0ece8]/20" placeholder="Kovács János" />
+                  </div>
+                  <div>
+                    <label className="block font-roboto text-xs tracking-wider text-[#f0ece8]/45 uppercase mb-2">Telefonszám *</label>
+                    <input type="tel" name="phone" required value={formData.phone} onChange={handleChange} className="w-full bg-[#0a0a0a] border border-[#2a2a2a] focus:border-[#c0392b] text-[#f0ece8] font-roboto text-sm px-4 py-3 outline-none transition-colors duration-300 placeholder:text-[#f0ece8]/20" placeholder="+36 30 123 4567" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-roboto text-xs tracking-wider text-[#f0ece8]/45 uppercase mb-2">E-mail cím</label>
+                  <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full bg-[#0a0a0a] border border-[#2a2a2a] focus:border-[#c0392b] text-[#f0ece8] font-roboto text-sm px-4 py-3 outline-none transition-colors duration-300 placeholder:text-[#f0ece8]/20" placeholder="janos@email.hu" />
+                </div>
+                <div>
+                  <label className="block font-roboto text-xs tracking-wider text-[#f0ece8]/45 uppercase mb-2">Szolgáltatás *</label>
+                  <select name="service" required value={formData.service} onChange={handleChange} className="w-full bg-[#0a0a0a] border border-[#2a2a2a] focus:border-[#c0392b] text-[#f0ece8] font-roboto text-sm px-4 py-3 outline-none transition-colors duration-300">
+                    <option value="">Válasszon szolgáltatást...</option>
+                    {serviceOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-roboto text-xs tracking-wider text-[#f0ece8]/45 uppercase mb-2">Dátum *</label>
+                    <input type="date" name="date" required value={formData.date} onChange={handleChange} className="w-full bg-[#0a0a0a] border border-[#2a2a2a] focus:border-[#c0392b] text-[#f0ece8] font-roboto text-sm px-4 py-3 outline-none transition-colors duration-300" />
+                  </div>
+                  <div>
+                    <label className="block font-roboto text-xs tracking-wider text-[#f0ece8]/45 uppercase mb-2">Időpont *</label>
+                    <select name="time" required value={formData.time} onChange={handleChange} className="w-full bg-[#0a0a0a] border border-[#2a2a2a] focus:border-[#c0392b] text-[#f0ece8] font-roboto text-sm px-4 py-3 outline-none transition-colors duration-300">
+                      <option value="">Válasszon időpontot...</option>
+                      {timeSlots.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-roboto text-xs tracking-wider text-[#f0ece8]/45 uppercase mb-2">Megjegyzés</label>
+                  <textarea name="message" rows={3} value={formData.message} onChange={handleChange} className="w-full bg-[#0a0a0a] border border-[#2a2a2a] focus:border-[#c0392b] text-[#f0ece8] font-roboto text-sm px-4 py-3 outline-none transition-colors duration-300 resize-none placeholder:text-[#f0ece8]/20" placeholder="Különleges kérések, allergiák, stb." />
+                </div>
+                <button type="submit" className="w-full py-4 bg-[#c0392b] text-[#f0ece8] font-oswald font-bold text-sm tracking-widest uppercase hover:bg-[#e74c3c] transition-all duration-300 shadow-lg shadow-[#c0392b]/25">Időpont Foglalása</button>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+src/components/ContactSection.tsx
+export default function ContactSection() {
+  return (
+    <section id="contact" className="py-24 bg-[#141414]">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="h-px w-8 bg-[#c0392b]" />
+            <span className="font-roboto text-xs tracking-[0.3em] text-[#c0392b] uppercase">Elérhetőség</span>
+            <div className="h-px w-8 bg-[#c0392b]" />
+          </div>
+          <h2 className="font-oswald text-4xl md:text-5xl font-bold text-[#f0ece8] mb-4 uppercase tracking-wider">Kapcsolat</h2>
+          <div className="red-divider" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+          <div className="bg-[#0a0a0a] border border-[#1e1e1e] p-8 text-center group hover:border-[#c0392b]/40 transition-colors duration-300">
+            <div className="text-4xl mb-4">📍</div>
+            <h3 className="font-oswald text-lg font-bold text-[#f0ece8] mb-3 uppercase tracking-wider group-hover:text-[#c0392b] transition-colors duration-300">Cím</h3>
+            <p className="font-roboto text-sm text-[#f0ece8]/50 leading-relaxed">Budapest, VII. kerület<br />Dohány utca 5.<br />1074 Budapest</p>
+          </div>
+          <div className="bg-[#0a0a0a] border border-[#1e1e1e] p-8 text-center group hover:border-[#c0392b]/40 transition-colors duration-300">
+            <div className="text-4xl mb-4">📞</div>
+            <h3 className="font-oswald text-lg font-bold text-[#f0ece8] mb-3 uppercase tracking-wider group-hover:text-[#c0392b] transition-colors duration-300">Telefon</h3>
+            <p className="font-roboto text-sm text-[#f0ece8]/50 leading-relaxed">
+              <a href="tel:+3612345678" className="hover:text-[#c0392b] transition-colors duration-300 block">+36 1 234 5678</a>
+              <a href="tel:+36301234567" className="hover:text-[#c0392b] transition-colors duration-300 block mt-1">+36 30 123 4567</a>
+            </p>
+          </div>
+          <div className="bg-[#0a0a0a] border border-[#c0392b]/30 p-8 text-center group hover:border-[#c0392b] transition-colors duration-300">
+            <div className="text-4xl mb-4">📧</div>
+            <h3 className="font-oswald text-lg font-bold text-[#c0392b] mb-3 uppercase tracking-wider">E-mail</h3>
+            <p className="font-roboto text-sm text-[#f0ece8]/50 leading-relaxed">
+              <a href="mailto:diego.barbershop@gmail.com" className="hover:text-[#c0392b] transition-colors duration-300 block">diego.barbershop@gmail.com</a>
+            </p>
+          </div>
+        </div>
+        <div className="w-full h-64 bg-[#0a0a0a] border border-[#1e1e1e] flex items-center justify-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1a0505] to-[#0a0a0a]" />
+          <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "linear-gradient(#c0392b 1px, transparent 1px), linear-gradient(90deg, #c0392b 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+          <div className="relative z-10 text-center">
+            <div className="text-5xl mb-4">🗺️</div>
+            <p className="font-roboto text-sm text-[#f0ece8]/40">Budapest, VII. kerület, Dohány utca 5.</p>
+            <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="inline-block mt-4 font-oswald text-xs tracking-widest text-[#c0392b] uppercase hover:text-[#e74c3c] transition-colors duration-300">Megnyitás Google Maps-ben →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+src/components/Footer.tsx
+export default function Footer() {
+  const currentYear = new Date().getFullYear();
+  return (
+    <footer className="bg-[#050505] border-t border-[#1e1e1e]">
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-3 mb-5">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="18" stroke="#c0392b" strokeWidth="1.5" fill="none" />
+                <rect x="5" y="16.5" width="30" height="7" rx="1.5" fill="#c0392b" />
+                <rect x="16.5" y="5" width="7" height="30" rx="1.5" fill="#c0392b" />
+              </svg>
+              <div>
+                <span className="font-oswald text-xl font-bold tracking-widest text-[#f0ece8] uppercase block">Diego</span>
+                <span className="font-roboto text-[10px] tracking-[0.35em] text-[#c0392b] uppercase">Barber Shop</span>
+              </div>
+            </div>
+            <p className="font-roboto text-sm text-[#f0ece8]/35 leading-relaxed max-w-xs mb-6">Prémium borbélyüzleti szolgáltatások Budapest szívében.</p>
+            <div className="flex gap-3">
+              {["FB", "IG", "TT"].map((social) => (
+                <a key={social} href="#" className="w-9 h-9 border border-[#1e1e1e] hover:border-[#c0392b]/50 flex items-center justify-center text-[#f0ece8]/30 hover:text-[#c0392b] font-oswald text-xs transition-all duration-300">{social}</a>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h4 className="font-oswald text-sm font-bold text-[#f0ece8] mb-4 tracking-widest uppercase">Gyors linkek</h4>
+            <ul className="space-y-2">
+              {[{ label: "Főoldal", href: "#hero" }, { label: "Szolgáltatások", href: "#services" }, { label: "Galéria", href: "#gallery" }, { label: "Foglalás", href: "#booking" }, { label: "Kapcsolat", href: "#contact" }].map((link) => (
+                <li key={link.href}><a href={link.href} className="font-roboto text-sm text-[#f0ece8]/35 hover:text-[#c0392b] transition-colors duration-300">{link.label}</a></li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-oswald text-sm font-bold text-[#f0ece8] mb-4 tracking-widest uppercase">Szolgáltatások</h4>
+            <ul className="space-y-2">
+              {["Hajvágás – Férfiaknak", "Hajvágás – Nőknek", "Szakáll igazítás", "Hajvágás + Szakáll", "Gyermek hajvágás", "Fejbőr masszázs"].map((service) => (
+                <li key={service}><a href="#services" className="font-roboto text-sm text-[#f0ece8]/35 hover:text-[#c0392b] transition-colors duration-300">{service}</a></li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div className="h-px bg-gradient-to-r from-transparent via-[#c0392b]/30 to-transparent mb-8" />
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="font-roboto text-xs text-[#f0ece8]/25">© {currentYear} Diego Barber Shop. Minden jog fenntartva.</p>
+          <div className="flex gap-6">
+            {["Adatvédelem", "ÁSZF", "Cookie"].map((item) => (
+              <a key={item} href="#" className="font-roboto text-xs text-[#f0ece8]/25 hover:text-[#c0392b] transition-colors duration-300">{item}</a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
